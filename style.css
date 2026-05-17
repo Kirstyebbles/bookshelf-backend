@@ -1,0 +1,31 @@
+body {
+  font-family: Arial;
+  margin: 40px;
+  background: #f7f7f7;
+}
+
+h1 {
+  margin-bottom: 20px;
+}
+
+.add-box input {
+  padding: 8px;
+  margin: 5px;
+}
+
+button {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.book {
+  background: white;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.actions button {
+  margin-right: 5px;
+}

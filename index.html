@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+body{font-family:'Poppins',sans-serif;margin:0;background:linear-gradient(135deg,#ffe4ec,#fff0f5);}
+header{background:linear-gradient(135deg,#ff69b4,#ff1493);color:#fff;padding:1.5rem;text-align:center;letter-spacing:1px;box-shadow:0 4px 15px rgba(255,105,180,0.4)}
+.container{max-width:900px;margin:30px auto;padding:25px;background:rgba(255,255,255,0.8);backdrop-filter:blur(10px);border-radius:20px;box-shadow:0 10px 30px rgba(255,105,180,0.2);animation:fadeIn 1s ease}
+form{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+input,select,button{padding:10px;border-radius:8px;border:1px solid #ffc0cb;font-family:'Poppins'}
+button{background:linear-gradient(135deg,#ff69b4,#ff1493);color:#fff;border:none;cursor:pointer;transition:0.3s}
+button:hover{transform:scale(1.05);box-shadow:0 5px 15px rgba(255,20,147,0.4)}
+.book-item{display:flex;justify-content:space-between;padding:12px;border-bottom:1px solid #ffe4e1;animation:slideUp 0.4s ease}
+.status{padding:5px 10px;border-radius:20px;margin-right:10px;font-size:0.8rem}
+.dashboard{display:flex;gap:10px;flex-wrap:wrap}
+.card{flex:1;min-width:120px;background:rgba(255,240,245,0.7);padding:15px;border-radius:15px;text-align:center;box-shadow:0 5px 15px rgba(255,105,180,0.15);transition:0.3s}
+.card:hover{transform:translateY(-5px) scale(1.03)}
+canvas{margin-top:25px}
+</style>
+</head>
+<body>
+<h1>Track Your Books</h1>
+
+<p id="login-status"></p>
+
+<button type="button" id="login-btn">
+  Login with Google
+</button>
+
+<button type="button" id="logout-btn" style="display:none;">
+  Logout
+</button>
+
+<script type="module" src="index.js"></script>
+
+  <nav style="background:#ed76df; padding:15px; position:sticky; top:0; z-index:1000;">
+  <div style="max-width:1100px; margin:auto; display:flex; justify-content:space-between; align-items:center; color:white;">
+     <div class="hidden" id="profile-screen">
+    <div>
+      <a href="bookshelf.html" style="color:white; margin:0 10px; text-decoration:none;">Personal Bookshelf</a>
+      <a href="favourites.html" style="color:white; margin:0 10px; text-decoration:none;">Favourites</a>
+      <a href="Genres.html" style="color:white; margin:0 10px; text-decoration:none;">Genres</a>
+      <a href="wishlist.html" style="color:white; margin:0 10px; text-decoration:none;">Wishlist</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+<h2>Dashboard</h2>
+<div class="dashboard">
+<div class="card"><p>Total</p><h3 id="total">0</h3></div>
+<div class="card"><p>Read</p><h3 id="readCount">0</h3></div>
+<div class="card"><p>Reading</p><h3 id="readingCount">0</h3></div>
+<div class="card"><p>Wishlist</p><h3 id="wishlistCount">0</h3></div>
+</div>
+
+<canvas id="statusChart" height="100"></canvas>
+<canvas id="progressChart" height="100"></canvas>
+
+<h2>Add Book / Pages</h2>
+<form id="bookForm">
+<input id="title" placeholder="Title" required>
+<input id="author" placeholder="Author" required>
+<input id="pages" type="number" placeholder="Pages read today" required>
+<select id="status">
+<option value="reading">Reading</option>
+<option value="read">Read</option>
+<option value="wishlist">Wishlist</option>
+</select>
+<select id="rating">
+<option value="0">No Rating</option>
+<option value="1">⭐</option>
+<option value="2">⭐⭐</option>
+<option value="3">⭐⭐⭐</option>
+<option value="4">⭐⭐⭐⭐</option>
+<option value="5">⭐⭐⭐⭐⭐</option>
+</select>
+<button>Add</button>
+</form>
+
+<ul id="bookList"></ul>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const form=document.getElementById('bookForm');
+const list=document.getElementById('bookList');
+
+const totalEl=document.getElementById('total');
+const readEl=document.getElementById('readCount');
+const readingEl=document.getElementById('readingCount');
+const wishlistEl=document.getElementById('wishlistCount');
+
+const statusCtx=document.getElementById('statusChart').getContext('2d');
+const progressCtx=document.getElementById('progressChart').getContext('2d');
+
+let statusChart, progressChart;
+
+let books = JSON.parse(localStorage.getItem('books')) || [];
+let progressData = JSON.parse(localStorage.getItem('progress')) || {};
+
+function saveData(){
+  localStorage.setItem('books', JSON.stringify(books));
+  localStorage.setItem('progress', JSON.stringify(progressData));
+}
+
+function renderBooks(){
+  list.innerHTML='';
+  books.forEach((b,i)=>{
+    const li=document.createElement('li');
+    li.className='book-item';
+    li.dataset.status=b.status;
+
+    li.innerHTML=`<div><strong>${b.title}</strong> by ${b.author}<br>
+    <span class="status ${b.status}">${b.status}</span>
+    <span class="stars">${'⭐'.repeat(b.rating)}</span></div>
+    <button>Delete</button>`;
+
+    li.querySelector('button').onclick=()=>{
+      books.splice(i,1);
+      saveData();
+      renderBooks();
+    };
+
+    list.appendChild(li);
+  });
+
+  updateDashboard();
+}
+
+function updateDashboard(){
+let total=books.length,read=0,reading=0,wishlist=0;
+books.forEach(b=>{
+if(b.status==='read') read++;
+if(b.status==='reading') reading++;
+if(b.status==='wishlist') wishlist++;
+});
+
+totalEl.textContent=total;
+readEl.textContent=read;
+readingEl.textContent=reading;
+wishlistEl.textContent=wishlist;
+
+drawStatusChart(read,reading,wishlist);
+}
+
+function drawStatusChart(read,reading,wishlist){
+if(statusChart) statusChart.destroy();
+statusChart=new Chart(statusCtx,{type:'bar',data:{labels:['Read','Reading','Wishlist'],datasets:[{data:[read,reading,wishlist]}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+}
+
+function updateProgress(pages){
+const today=new Date().toLocaleDateString();
+if(!progressData[today]) progressData[today]=0;
+progressData[today]+=pages;
+saveData();
+drawProgressChart();
+}
+
+function drawProgressChart(){
+if(progressChart) progressChart.destroy();
+progressChart=new Chart(progressCtx,{type:'line',data:{labels:Object.keys(progressData),datasets:[{data:Object.values(progressData),fill:false}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+}
+
+form.addEventListener('submit',e=>{
+e.preventDefault();
+
+const book={
+  title:titleEl.value,
+  author:authorEl.value,
+  status:statusEl.value,
+  rating:parseInt(ratingEl.value)
+};
+
+const pages=parseInt(pagesEl.value);
+
+books.push(book);
+updateProgress(pages);
+saveData();
+renderBooks();
+form.reset();
+});
+
+const titleEl=document.getElementById('title');
+const authorEl=document.getElementById('author');
+const statusEl=document.getElementById('status');
+const ratingEl=document.getElementById('rating');
+const pagesEl=document.getElementById('pages');
+
+renderBooks();
+drawProgressChart();
+</script>
+
+</body>
+</html>
+
+
+
+
