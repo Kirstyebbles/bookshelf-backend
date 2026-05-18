@@ -1,6 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-const db = require("./db");
 require("dotenv").config();
 
 const app = express();
@@ -8,11 +7,24 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+let db;
+
+try {
+  db = require("./db");
+  console.log("db.js loaded");
+} catch (err) {
+  console.log("DB FILE LOAD ERROR:", err);
+}
+
 app.get("/", (req, res) => {
   res.send("Backend is running");
 });
 
 app.get("/setup", (req, res) => {
+  if (!db) {
+    return res.status(500).json({ error: "Database not connected" });
+  }
+
   db.query(`
     CREATE TABLE IF NOT EXISTS books (
       id INT PRIMARY KEY AUTO_INCREMENT,
@@ -32,6 +44,10 @@ app.get("/setup", (req, res) => {
 });
 
 app.get("/books", (req, res) => {
+  if (!db) {
+    return res.status(500).json({ error: "Database not connected" });
+  }
+
   db.query("SELECT * FROM books", (err, results) => {
     if (err) {
       console.log("GET BOOKS ERROR:", err);
@@ -43,6 +59,10 @@ app.get("/books", (req, res) => {
 });
 
 app.post("/books", (req, res) => {
+  if (!db) {
+    return res.status(500).json({ error: "Database not connected" });
+  }
+
   const { title, author } = req.body;
 
   db.query(
