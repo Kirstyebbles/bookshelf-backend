@@ -83,7 +83,8 @@ app.get("/env-check", (req, res) => {
     DB_PORT: process.env.DB_PORT,
     DB_USER: process.env.DB_USER,
     DB_NAME: process.env.DB_NAME,
-    hasPassword: Boolean(process.env.DB_PASSWORD)
+    hasPassword: Boolean(process.env.DB_PASSWORD),
+    passKeys: Object.keys(process.env).filter(key => key.includes("PASS"))
   });
 });
 
