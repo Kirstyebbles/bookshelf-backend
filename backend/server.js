@@ -87,7 +87,9 @@ app.get("/env-check", (req, res) => {
     passKeys: Object.keys(process.env).filter(key => key.includes("PASS"))
   });
 });
-
+app.get("/test-version", (req, res) => {
+  res.send("version 123");
+});
 app.listen(process.env.PORT || 3000, () => {
   console.log("Server running on port " + (process.env.PORT || 3000));
 });
