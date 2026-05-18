@@ -23,21 +23,7 @@ app.get("/setup", (req, res) => {
     )
   `;
 
-  db.query(sql, (err) => {
-    if (err) {
-      console.log("SETUP ERROR:", err);
-      return res.status(500).json({
-        error: true,
-        code: err.code || null,
-        errno: err.errno || null,
-        message: err.message || null,
-        sqlMessage: err.sqlMessage || null
-      });
-    }
 
-    res.send("Books table created");
-  });
-});
 
 app.get("/books", (req, res) => {
   db.query("SELECT * FROM books", (err, results) => {
@@ -77,16 +63,6 @@ app.post("/books", (req, res) => {
   );
 });
 
-app.get("/env-check", (req, res) => {
-  res.json({
-    DB_HOST: process.env.DB_HOST || null,
-    DB_PORT: process.env.DB_PORT || null,
-    DB_USER: process.env.DB_USER || null,
-    DB_NAME: process.env.DB_NAME || null,
-    hasPassword: Boolean(process.env.DB_PASSWORD)
-  });
-});
 
-app.listen(process.env.PORT || 3000, () => {
-  console.log("Server running on port " + (process.env.PORT || 3000));
-});
+
+
