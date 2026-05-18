@@ -79,17 +79,14 @@ app.post("/books", (req, res) => {
 
 app.get("/env-check", (req, res) => {
   res.json({
-    DB_HOST: process.env.DB_HOST,
-    DB_PORT: process.env.DB_PORT,
-    DB_USER: process.env.DB_USER,
-    DB_NAME: process.env.DB_NAME,
-    hasPassword: Boolean(process.env.DB_PASSWORD),
-    passKeys: Object.keys(process.env).filter(key => key.includes("PASS"))
+    DB_HOST: process.env.DB_HOST || null,
+    DB_PORT: process.env.DB_PORT || null,
+    DB_USER: process.env.DB_USER || null,
+    DB_NAME: process.env.DB_NAME || null,
+    hasPassword: Boolean(process.env.DB_PASSWORD)
   });
 });
-app.get("/test-version", (req, res) => {
-  res.send("version 123");
-});
+
 app.listen(process.env.PORT || 3000, () => {
   console.log("Server running on port " + (process.env.PORT || 3000));
 });
