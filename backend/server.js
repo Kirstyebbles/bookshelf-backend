@@ -21,9 +21,28 @@ app.get("/", (req, res) => {
 });
 
 app.get("/setup", (req, res) => {
-  if (!db) {
-    return res.status(500).json({ error: "Database not connected" });
-  }
+  db.query(`
+    CREATE TABLE IF NOT EXISTS books (
+      id INT PRIMARY KEY AUTO_INCREMENT,
+      title VARCHAR(255) NOT NULL,
+      author VARCHAR(255),
+      status VARCHAR(50) DEFAULT 'unread',
+      progress INT DEFAULT 0
+    )
+  `, (err) => {
+    if (err) {
+      console.log("SETUP ERROR FULL:", err);
+      return res.status(500).json({
+        code: err.code,
+        errno: err.errno,
+        sqlMessage: err.sqlMessage,
+        message: err.message
+      });
+    }
+
+    res.send("Books table created");
+  });
+});
 
   db.query(`
     CREATE TABLE IF NOT EXISTS books (
