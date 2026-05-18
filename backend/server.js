@@ -12,29 +12,11 @@ app.get("/", (req, res) => {
   res.send("Backend is running");
 });
 
-app.get("/setup", (req, res) => {
-  const sql = `
-    CREATE TABLE IF NOT EXISTS books (
-      id INT PRIMARY KEY AUTO_INCREMENT,
-      title VARCHAR(255) NOT NULL,
-      author VARCHAR(255),
-      status VARCHAR(50) DEFAULT 'unread',
-      progress INT DEFAULT 0
-    )
-  `;
-
-
-
 app.get("/books", (req, res) => {
   db.query("SELECT * FROM books", (err, results) => {
     if (err) {
       console.log("GET BOOKS ERROR:", err);
-      return res.status(500).json({
-        error: true,
-        code: err.code || null,
-        message: err.message || null,
-        sqlMessage: err.sqlMessage || null
-      });
+      return res.status(500).json({ error: true, message: err.message });
     }
 
     res.json(results);
@@ -50,17 +32,16 @@ app.post("/books", (req, res) => {
     (err) => {
       if (err) {
         console.log("ADD BOOK ERROR:", err);
-        return res.status(500).json({
-          error: true,
-          code: err.code || null,
-          message: err.message || null,
-          sqlMessage: err.sqlMessage || null
-        });
+        return res.status(500).json({ error: true, message: err.message });
       }
 
       res.json({ message: "Book added" });
     }
   );
+});
+
+app.listen(process.env.PORT || 3000, () => {
+  console.log("Server running on port " + (process.env.PORT || 3000));
 });
 
 
