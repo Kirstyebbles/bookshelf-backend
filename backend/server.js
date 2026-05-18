@@ -77,6 +77,16 @@ app.post("/books", (req, res) => {
   );
 });
 
+app.get("/env-check", (req, res) => {
+  res.json({
+    DB_HOST: process.env.DB_HOST,
+    DB_PORT: process.env.DB_PORT,
+    DB_USER: process.env.DB_USER,
+    DB_NAME: process.env.DB_NAME,
+    hasPassword: Boolean(process.env.DB_PASSWORD)
+  });
+});
+
 app.listen(process.env.PORT || 3000, () => {
   console.log("Server running on port " + (process.env.PORT || 3000));
 });
